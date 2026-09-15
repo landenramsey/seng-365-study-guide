@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SENG 365 — Test 1 Study Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"DM Sans"', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', 'monospace'],
+          },
+          colors: {
+            ink: { 950: '#0B1220', 900: '#111827', 800: '#1E293B', 700: '#334155' },
+            mist: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0' },
+            teal: { 400: '#2DD4BF', 500: '#14B8A6', 600: '#0F766E', 700: '#0D5C56' },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    body {
+      background-color: #0B1220;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.35), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 10%, rgba(45, 212, 191, 0.12), transparent 50%),
+        radial-gradient(ellipse 50% 30% at 50% 100%, rgba(15, 118, 110, 0.15), transparent 60%);
+      min-height: 100vh;
+    }
+    .panel {
+      background: rgba(248, 250, 252, 0.96);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+    }
+    .nav-btn.active {
+      background: #0F766E;
+      color: white;
+    }
+    iframe.preview {
+      background: white;
+      width: 100%;
+      min-height: 280px;
+      border: 1px solid #E2E8F0;
+      border-radius: 0.5rem;
+    }
+    @keyframes feedback-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .feedback-banner { animation: feedback-in 0.25s ease-out; }
+    .choice-btn:not(:disabled):hover { transform: translateY(-1px); }
+    .choice-btn { transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s; }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+</head>
+<body class="font-sans text-ink-900 antialiased" x-data="studyGuide()" x-cloak>
+  <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
+    <header class="mb-8">
+      <p class="text-sm font-medium tracking-wide text-teal-400">SENG 365 · Fall 2026</p>
+      <h1 class="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">Test 1 Study Guide</h1>
+      <p class="mt-2 max-w-xl text-mist-200/90">HTML &amp; CSS active recall — cheat sheets, a rotating quiz pool, and a live playground.</p>
+    </header>
+
+    <nav class="mb-6 flex flex-wrap gap-2" aria-label="Study sections">
+      <template x-for="tab in tabs" :key="tab.id">
+        <button
+          type="button"
+          class="nav-btn rounded-lg px-4 py-2 text-sm font-medium transition"
+          :class="activeSection === tab.id ? 'active' : 'bg-ink-800 text-mist-100 hover:bg-ink-700'"
+          @click="activeSection = tab.id"
+          x-text="tab.label"
+        ></button>
+      </template>
+    </nav>
+
+    <!-- Cheat sheet -->
+    <section x-show="activeSection === 'cheatsheet'" x-transition.opacity class="space-y-3">
+      <template x-for="topic in topics" :key="topic.id">
+        <div class="panel overflow-hidden rounded-xl shadow-sm">
+          <button
+            type="button"
+            class="flex w-full items-start justify-between gap-4 px-5 py-4 text-left transition hover:bg-mist-50"
+            @click="openTopic = openTopic === topic.id ? null : topic.id"
+            :aria-expanded="openTopic === topic.id"
+          >
+            <div>
+              <h2 class="text-lg font-semibold text-ink-900" x-text="topic.title"></h2>
+              <p class="mt-0.5 text-sm text-ink-700/70" x-text="topic.summary"></p>
+            </div>
+            <span
+              class="mt-1 shrink-0 text-teal-600 transition-transform"
+              :class="openTopic === topic.id && 'rotate-180'"
+              aria-hidden="true"
+            >▾</span>
+          </button>
+          <div x-show="openTopic === topic.id" x-transition class="border-t border-mist-200 px-5 pb-5 pt-3">
+            <dl class="space-y-4">
+              <template x-for="(item, i) in topic.items" :key="i">
+                <div>
+                  <dt class="text-sm font-semibold text-teal-700" x-text="item.label"></dt>
+                  <dd class="mt-1 text-sm leading-relaxed text-ink-800" x-html="item.body"></dd>
+                </div>
+              </template>
+            </dl>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <!-- Quiz -->
+    <section x-show="activeSection === 'quiz'" x-transition.opacity>
+      <div class="panel rounded-xl p-5 shadow-sm sm:p-6">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold">Quiz</h2>
+            <p class="text-sm text-ink-700/70">
+              Question <span x-text="currentIndex + 1"></span> of <span x-text="QUIZ_SIZE"></span>
+              · Score <span class="font-semibold text-teal-700" x-text="score"></span>/<span x-text="QUIZ_SIZE"></span>
+              · Pool <span x-text="questionPool.length"></span>
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg bg-ink-900 px-3 py-2 text-sm font-medium text-white hover:bg-ink-800"
+            @click="resetQuiz()"
+          >Reset / New Round</button>
+        </div>
+
+        <div class="mb-5 h-2 overflow-hidden rounded-full bg-mist-200" role="progressbar" :aria-valuenow="progressPercent" aria-valuemin="0" aria-valuemax="100">
+          <div class="h-full rounded-full bg-teal-600 transition-all duration-300" :style="`width: ${progressPercent}%`"></div>
+        </div>
+
+        <div x-show="currentQuestion">
+          <p class="mb-4 text-base font-medium leading-snug text-ink-900" x-text="currentQuestion.prompt"></p>
+
+          <ul class="space-y-2" role="listbox">
+            <template x-for="(choice, ci) in currentQuestion.choices" :key="ci">
+              <li>
+                <button
+                  type="button"
+                  class="choice-btn flex w-full items-start gap-3 rounded-lg border px-4 py-3 text-left text-sm"
+                  :class="choiceClass(ci)"
+                  :disabled="hasAnsweredCurrent"
+                  @click="selectAnswer(ci)"
+                >
+                  <span
+                    class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-semibold"
+                    :class="choiceLetterClass(ci)"
+                    x-text="String.fromCharCode(65 + ci)"
+                  ></span>
+                  <span class="flex-1 pt-0.5" x-text="choice"></span>
+                  <span
+                    class="mt-0.5 shrink-0 text-xs font-semibold"
+                    x-show="hasAnsweredCurrent && ci === currentQuestion.correctIndex"
+                  >✓</span>
+                </button>
+              </li>
+            </template>
+          </ul>
+
+          <!-- Feedback reads reactive answered + feedbackKey so it updates immediately -->
+          <div
+            x-show="hasAnsweredCurrent"
+            class="feedback-banner mt-4 rounded-lg px-4 py-3 text-sm"
+            :class="isCurrentCorrect
+              ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+              : 'bg-red-50 text-red-900 border border-red-200'"
+          >
+            <p class="font-semibold tracking-tight">
+              <span x-text="isCurrentCorrect ? 'Correct' : 'Incorrect'"></span>
+              <span class="font-normal opacity-80" x-show="!isCurrentCorrect"> — the green option is right</span>
+            </p>
+            <p class="mt-1 leading-relaxed" x-text="currentQuestion.explanation"></p>
+          </div>
+
+          <div class="mt-5 flex justify-between gap-3">
+            <button
+              type="button"
+              class="rounded-lg border border-mist-200 bg-white px-4 py-2 text-sm font-medium disabled:opacity-40"
+              :disabled="currentIndex === 0"
+              @click="goPrev()"
+            >Previous</button>
+            <button
+              type="button"
+              class="rounded-lg px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+              :class="hasAnsweredCurrent ? 'bg-teal-600 hover:bg-teal-700 ring-2 ring-teal-600/30' : 'bg-teal-600/80 hover:bg-teal-700'"
+              :disabled="currentIndex >= activeQuestions.length - 1"
+              @click="goNext()"
+              x-text="hasAnsweredCurrent && currentIndex < activeQuestions.length - 1 ? 'Next question →' : 'Next'"
+            ></button>
+          </div>
+
+          <p
+            x-show="answeredCount === QUIZ_SIZE"
+            class="mt-4 text-center text-sm font-medium text-teal-700"
+          >
+            Round complete — <span x-text="score"></span>/<span x-text="QUIZ_SIZE"></span>. Hit Reset for a new set from the pool.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Playground -->
+    <section x-show="activeSection === 'playground'" x-transition.opacity>
+      <div class="panel rounded-xl p-5 shadow-sm sm:p-6">
+        <h2 class="text-lg font-semibold">Code Playground</h2>
+        <p class="mb-4 text-sm text-ink-700/70">Edit HTML and CSS — preview updates as you type.</p>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-700/60">HTML</span>
+            <textarea
+              class="h-44 w-full resize-y rounded-lg border border-mist-200 bg-mist-50 p-3 font-mono text-xs leading-relaxed focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
+              x-model="htmlCode"
+              @input="updatePreview()"
+              spellcheck="false"
+            ></textarea>
+          </label>
+          <label class="block">
+            <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-700/60">CSS</span>
+            <textarea
+              class="h-44 w-full resize-y rounded-lg border border-mist-200 bg-mist-50 p-3 font-mono text-xs leading-relaxed focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
+              x-model="cssCode"
+              @input="updatePreview()"
+              spellcheck="false"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="mt-4">
+          <span class="mb-1 block text-xs font-semibold uppercase tracking-wide text-ink-700/60">Preview</span>
+          <iframe class="preview" sandbox="" :srcdoc="previewDoc" title="Live HTML/CSS preview"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-10 text-center text-xs text-mist-200/50">
+      Active recall tool for SENG 365 Test 1 · Progress saved in localStorage
+    </footer>
+  </div>
+
+  <script>
+    function studyGuide() {
+      const STORAGE_KEY = 'seng365-test1-quiz-v2';
+      const QUIZ_SIZE = 12;
+
+      const questionPool = [
+        {
+          id: 1,
+          prompt: "A web browser",
+          choices: ["is a program that runs on a web server", "starts when an HTTP request is made", "starts when a web server sends a page to a client", "is a program that runs on a client computer"],
+          correctIndex: 3,
+          explanation: "is a program that runs on a client computer",
+        },
+        {
+          id: 2,
+          prompt: "The Internet consists",
+          choices: ["of one wide area network", "of many wide area networks that are connected to local area networks", "of thousands of local area networks that are connected by routers", "of one wide area network that is connected to thousands of local area networks"],
+          correctIndex: 1,
+          explanation: "of many wide area networks that are connected to local area networks",
+        },
+        {
+          id: 3,
+          prompt: "An HTTP response is sent from",
+          choices: ["the web server to the application server", "the application server to the web server", "the client to the web server", "the web server to the client"],
+          correctIndex: 3,
+          explanation: "the web server to the client",
+        },
+        {
+          id: 4,
+          prompt: "When a browser makes a request for a static web page, the web server",
+          choices: ["returns the HTML for the page and the browser renders it", "renders the HTML for the page and returns it to the browser", "generates the HTML for the page and returns it to the browser", "finds the HTML for the page and renders it"],
+          correctIndex: 0,
+          explanation: "returns the HTML for the page and the browser renders it",
+        },
+        {
+          id: 5,
+          prompt: "When a client requests a dynamic web page, the HTML is generated by",
+          choices: ["the web server", "an application server", "a database server", "the web browser"],
+          correctIndex: 1,
+          explanation: "an application server",
+        },
+        {
+          id: 6,
+          prompt: "HTML is used to define",
+          choices: ["the structure and contents of a web page", "the formatting of a web page", "the layout of a web page", "all of the above"],
+          correctIndex: 0,
+          explanation: "the structure and contents of a web page",
+        },
+        {
+          id: 7,
+          prompt: "When you deploy a website, you upload its folders and files from",
+          choices: ["your computer or network to a web server on your intranet", "a WAN to a web server on the Internet", "your computer or network to a web server on the Internet", "a LAN to a WAN on the Internet"],
+          correctIndex: 2,
+          explanation: "your computer or network to a web server on the Internet",
+        },
+        {
+          id: 8,
+          prompt: "To load a web page into a web browser, you can",
+          choices: ["type the URL of the web page into the browser’s address bar", "type just the filename of the web page into the browser’s address bar", "type the domain name of the web page into the browser’s address bar", "click the browser’s Back button"],
+          correctIndex: 0,
+          explanation: "type the URL of the web page into the browser’s address bar",
+        },
+        {
+          id: 9,
+          prompt: "To load a web page from an intranet into your web browser, you can",
+          choices: ["click on the Load or Reload button", "use the Open or Open File command in the File menu", "enter the URL into the address bar", "find the file in the Developer Tools and double-click on it"],
+          correctIndex: 1,
+          explanation: "use the Open or Open File command in the File menu",
+        },
+        {
+          id: 10,
+          prompt: "If you right-click on a web page and select View Source or View Page Source,",
+          choices: ["the HTML for the page will be displayed", "the CSS for the page will be displayed", "a link to the HTML in the Developer Tools will be displayed", "a link to the CSS in the Developer Tools will be displayed"],
+          correctIndex: 0,
+          explanation: "the HTML for the page will be displayed",
+        },
+        {
+          id: 11,
+          prompt: "Which of the following is NOT a guideline for usability?",
+          choices: ["Present as much critical information as possible “above the fold”.", "Include a navigation bar in the header.", "Make the pages attractive and appealing.", "Include a logo that goes to the home page."],
+          correctIndex: 2,
+          explanation: "Attractiveness is a design concern; usability guidelines focus on conventions, navigation, and critical content above the fold.",
+        },
+        {
+          id: 12,
+          prompt: "Which of the following is NOT a guideline for user accessibility?",
+          choices: ["Provide text that is easy to read.", "Make sure all links can be accessed with the keyboard.", "Make sure that any essential information in images is also provided in text.", "Make sure that each page will run in all browsers."],
+          correctIndex: 3,
+          explanation: "Running in all browsers is cross-browser compatibility, not accessibility.",
+        },
+        {
+          id: 13,
+          prompt: "Because all browsers don’t adhere to the latest HTML and CSS standards, a web developer needs to be concerned with",
+          choices: ["search engine optimization", "cross-browser compatibility", "user accessibility", "responsive web design"],
+          correctIndex: 1,
+          explanation: "cross-browser compatibility",
+        },
+        {
+          id: 14,
+          prompt: "Because applications like Google and Bing rank the pages of a website, a web developer needs to be concerned with",
+          choices: ["search engine optimization", "cross-browser compatibility", "user accessibility", "responsive web design"],
+          correctIndex: 0,
+          explanation: "search engine optimization",
+        },
+        {
+          id: 15,
+          prompt: "Because 60% of all Internet access is being done on mobile devices, a web developer needs to be concerned with",
+          choices: ["search engine optimization", "cross-browser compatibility", "user accessibility", "responsive web design"],
+          correctIndex: 3,
+          explanation: "responsive web design",
+        },
+        {
+          id: 16,
+          prompt: "What is a “void” or self-closing HTML tag?",
+          choices: ["A tag reserved for comments", "A tag that only works in the head section", "A tag that can never have attributes", "A tag with no closing tag, like <br> or <hr>"],
+          correctIndex: 3,
+          explanation: "A tag with no closing tag, like <br> or <hr>",
+        },
+        {
+          id: 17,
+          prompt: "Which of these is correctly nested HTML?",
+          choices: ["<p><em>Order your copy today!</p></em>", "<p>Order your copy <em>today!</p></em>", "<em><p>Order your copy today!</em></p>", "<p>Order your copy <em>today!</em></p>"],
+          correctIndex: 3,
+          explanation: "<p>Order your copy <em>today!</em></p>",
+        },
+        {
+          id: 18,
+          prompt: "What is true of a block-level element?",
+          choices: ["A new line is placed before and after it, and it stretches the full available width", "It never takes up the full width of the page", "It can only contain text, never other elements", "It is always invisible until styled with CSS"],
+          correctIndex: 0,
+          explanation: "A new line is placed before and after it, and it stretches the full available width",
+        },
+        {
+          id: 19,
+          prompt: "What is true of an inline element?",
+          choices: ["It cannot be nested inside a block element", "It automatically centers itself on the page", "It does not start on a new line and only takes up as much width as necessary", "It always starts on a new line"],
+          correctIndex: 2,
+          explanation: "It does not start on a new line and only takes up as much width as necessary",
+        },
+        {
+          id: 20,
+          prompt: "What is an HTML attribute?",
+          choices: ["A separate CSS file linked to the page", "A type of block-level element", "A name/value pair added to an opening HTML tag", "A JavaScript variable declared in the head"],
+          correctIndex: 2,
+          explanation: "A name/value pair added to an opening HTML tag",
+        },
+        {
+          id: 21,
+          prompt: "What is unique about the id attribute compared to the class attribute?",
+          choices: ["id can be reused many times per page; class cannot", "id only works on the body element", "Each id value must appear only once per page; class values can be reused on multiple elements", "There is no difference between them"],
+          correctIndex: 2,
+          explanation: "Each id value must appear only once per page; class values can be reused on multiple elements",
+        },
+        {
+          id: 22,
+          prompt: "What is the primary purpose of HTML5 semantic elements like header, main, and footer?",
+          choices: ["They describe the structure of the page, which matters for accessibility and styling", "They apply default colors and fonts automatically", "They replace the need for CSS entirely", "They only work in Internet Explorer"],
+          correctIndex: 0,
+          explanation: "They describe the structure of the page, which matters for accessibility and styling",
+        },
+        {
+          id: 23,
+          prompt: "According to the deck’s guideline, when should you use a div element instead of a semantic element?",
+          choices: ["Only inside the head section", "Never – div is deprecated in HTML5", "Only when none of the HTML5 semantic block elements apply", "Always – div is preferred over semantic elements"],
+          correctIndex: 2,
+          explanation: "Only when none of the HTML5 semantic block elements apply",
+        },
+        {
+          id: 24,
+          prompt: "What does an HTML character entity like &copy; or &amp; represent?",
+          choices: ["A special character, like © or &, written in a form the browser will render correctly", "A CSS class name", "A JavaScript function call", "A block-level HTML element"],
+          correctIndex: 0,
+          explanation: "A special character, like © or &, written in a form the browser will render correctly",
+        },
+        {
+          id: 25,
+          prompt: "What must every HTML character entity start and end with?",
+          choices: ["Start with % and end with %", "Start with & and end with ;", "Start with # and end with ;", "Start with $ and end with $"],
+          correctIndex: 1,
+          explanation: "Start with & and end with ;",
+        },
+        {
+          id: 26,
+          prompt: "According to the SEO guidelines for the title tag, what should you avoid?",
+          choices: ["Making the title interesting enough to click on", "Making the title unique for each page", "Making the title too long – most search engines cut it off around 65 characters", "Including a focus keyword in the title"],
+          correctIndex: 2,
+          explanation: "Making the title too long – most search engines cut it off around 65 characters",
+        },
+        {
+          id: 27,
+          prompt: "According to the SEO guidelines for heading tags, how many h1 tags should a single page have?",
+          choices: ["None – h1 is deprecated", "Only one", "Exactly three", "As many as needed"],
+          correctIndex: 1,
+          explanation: "Only one",
+        },
+        {
+          id: 28,
+          prompt: "Which of these is listed as a common HTML error?",
+          choices: ["Including a title element in the head", "Using character entities", "Using lowercase tag names", "An opening tag without a matching closing tag"],
+          correctIndex: 3,
+          explanation: "An opening tag without a matching closing tag",
+        },
+        {
+          id: 29,
+          prompt: "What tool does the deck mention for validating HTML code?",
+          choices: ["A spell checker", "A JavaScript linter", "FTP client software", "The W3C Markup Validation Service"],
+          correctIndex: 3,
+          explanation: "The W3C Markup Validation Service",
+        },
+        {
+          id: 30,
+          prompt: "Which HTML element creates an unordered (bulleted) list?",
+          choices: ["<dl>", "<list>", "<ol>", "<ul>"],
+          correctIndex: 3,
+          explanation: "<ul>",
+        },
+        {
+          id: 31,
+          prompt: "Which HTML element creates an ordered (numbered) list?",
+          choices: ["<ul>", "<li>", "<nav>", "<ol>"],
+          correctIndex: 3,
+          explanation: "<ol>",
+        },
+        {
+          id: 32,
+          prompt: "What element wraps each individual item in both ordered and unordered lists?",
+          choices: ["<li>", "<item>", "<row>", "<entry>"],
+          correctIndex: 0,
+          explanation: "<li>",
+        },
+        {
+          id: 33,
+          prompt: "What is an absolute URL?",
+          choices: ["A full URL including the protocol and domain, like http://www.murach.com/index.html", "A path with no folder structure at all", "A path that always starts with ../", "A path that only works on the same page"],
+          correctIndex: 0,
+          explanation: "A full URL including the protocol and domain, like http://www.murach.com/index.html",
+        },
+        {
+          id: 34,
+          prompt: "Why does the deck recommend avoiding root-relative paths (like /login.html)?",
+          choices: ["They are not valid HTML syntax", "They require a full domain name to work", "They can behave unpredictably depending on the site’s root configuration, so document-relative paths are generally preferred", "Root-relative paths only work with images, not links"],
+          correctIndex: 2,
+          explanation: "They can behave unpredictably depending on the site’s root configuration, so document-relative paths are generally preferred",
+        },
+        {
+          id: 35,
+          prompt: "What does a document-relative path like ../index.html do?",
+          choices: ["Navigates up one folder level from the current page", "Refers to the current page’s images folder only", "Navigates down into a subfolder", "Links to an absolute URL"],
+          correctIndex: 0,
+          explanation: "Navigates up one folder level from the current page",
+        },
+        {
+          id: 36,
+          prompt: "What HTML element creates a hyperlink?",
+          choices: ["<a>", "<nav>", "<link>", "<href>"],
+          correctIndex: 0,
+          explanation: "<a>",
+        },
+        {
+          id: 37,
+          prompt: "What attribute of the anchor tag specifies where the link goes?",
+          choices: ["href", "src", "target", "url"],
+          correctIndex: 0,
+          explanation: "href",
+        },
+        {
+          id: 38,
+          prompt: "What does <a href=\"#\">Home</a> typically do?",
+          choices: ["Opens a new browser tab", "Downloads a file named “#”", "Deletes the link", "Links to the current page without reloading it"],
+          correctIndex: 3,
+          explanation: "Links to the current page without reloading it",
+        },
+        {
+          id: 39,
+          prompt: "What element embeds an image in an HTML page?",
+          choices: ["<image>", "<picture>", "<src>", "<img>"],
+          correctIndex: 3,
+          explanation: "<img>",
+        },
+        {
+          id: 40,
+          prompt: "What attribute is required on an img element for accessibility and validation?",
+          choices: ["title", "desc", "alt", "caption"],
+          correctIndex: 2,
+          explanation: "alt",
+        },
+        {
+          id: 41,
+          prompt: "Which of these is NOT listed as a widely-supported image format?",
+          choices: ["BMP", "PNG", "GIF", "JPEG"],
+          correctIndex: 0,
+          explanation: "BMP",
+        },
+        {
+          id: 42,
+          prompt: "What tool does the deck recommend for validating HTML pages?",
+          choices: ["A CSS linter", "An FTP client", "A spell checker", "The W3C Validator (validator.w3.org)"],
+          correctIndex: 3,
+          explanation: "The W3C Validator (validator.w3.org)",
+        },
+        {
+          id: 43,
+          prompt: "What two parts make up a CSS declaration?",
+          choices: ["A property and a value, separated by a colon", "A tag and an attribute", "A class and an id", "A selector and a rule"],
+          correctIndex: 0,
+          explanation: "A property and a value, separated by a colon",
+        },
+        {
+          id: 44,
+          prompt: "Which of the three ways to include CSS applies styles to only the text inside one specific element, written directly on that tag?",
+          choices: ["Vendor-prefixed styles", "Embedded styles", "Inline styles", "External style sheets"],
+          correctIndex: 2,
+          explanation: "Inline styles",
+        },
+        {
+          id: 45,
+          prompt: "Why does the deck recommend external style sheets over inline or embedded styles?",
+          choices: ["External style sheets are the only option that supports colors", "Inline styles are not valid CSS syntax", "Embedded styles only work in Chrome", "They can be applied to multiple HTML pages, keeping styling consistent and separate from content"],
+          correctIndex: 3,
+          explanation: "They can be applied to multiple HTML pages, keeping styling consistent and separate from content",
+        },
+        {
+          id: 46,
+          prompt: "What is the correct CSS comment syntax?",
+          choices: ["<!-- comment -->", "/* comment */", "# comment", "// comment"],
+          correctIndex: 1,
+          explanation: "/* comment */",
+        },
+        {
+          id: 47,
+          prompt: "In CSS, what does a comma between selectors mean, as in h1, h2, h3 { … }?",
+          choices: ["It selects h2 and h3 only if they are inside an h1", "It’s a syntax error", "It only applies to the first selector listed", "It acts as a logical OR – the rule applies to any of the listed elements"],
+          correctIndex: 3,
+          explanation: "It acts as a logical OR – the rule applies to any of the listed elements",
+        },
+        {
+          id: 48,
+          prompt: "What does a space between selectors mean, as in h1 p { … }?",
+          choices: ["Logical OR between h1 and p", "A descendant selector – selects any p element contained inside an h1", "It selects siblings of h1", "It selects only direct children"],
+          correctIndex: 1,
+          explanation: "A descendant selector – selects any p element contained inside an h1",
+        },
+        {
+          id: 49,
+          prompt: "Which of these is a relative CSS unit rather than an absolute (fixed) unit?",
+          choices: ["px", "in", "em", "pt"],
+          correctIndex: 2,
+          explanation: "em",
+        },
+        {
+          id: 50,
+          prompt: "In hexadecimal CSS color notation, what does #000000 represent?",
+          choices: ["Black", "Transparent", "White", "Red"],
+          correctIndex: 0,
+          explanation: "Black",
+        },
+        {
+          id: 51,
+          prompt: "What does the CSS cascade order prioritize, from lowest to highest precedence, according to the deck?",
+          choices: ["All four sources are always equal", "Inline styles, embedded styles, external style sheets, browser styles", "External style sheets always override inline styles", "Browser styles, external style sheets, embedded styles, inline styles"],
+          correctIndex: 3,
+          explanation: "Browser styles, external style sheets, embedded styles, inline styles",
+        },
+        {
+          id: 52,
+          prompt: "What does the !important keyword do to a CSS declaration?",
+          choices: ["Overrides normal cascade rules to give that declaration precedence, and should be used only as a last resort", "Applies the rule only in print mode", "Marks the rule as a comment", "Makes the browser ignore that declaration entirely"],
+          correctIndex: 0,
+          explanation: "Overrides normal cascade rules to give that declaration precedence, and should be used only as a last resort",
+        },
+        {
+          id: 53,
+          prompt: "What is a vendor prefix, like -webkit- or -moz-, used for?",
+          choices: ["To use a CSS property that a specific browser supports ahead of or differently from the official standard", "To import an external file", "To make a style rule apply only to mobile devices", "To comment out a CSS rule"],
+          correctIndex: 0,
+          explanation: "To use a CSS property that a specific browser supports ahead of or differently from the official standard",
+        },
+        {
+          id: 54,
+          prompt: "Which selector is considered the most specific, according to the deck’s specificity rules?",
+          choices: ["An element selector, like p", "A pseudo-element selector", "A class selector", "An id selector"],
+          correctIndex: 3,
+          explanation: "An id selector",
+        },
+        {
+          id: 55,
+          prompt: "If two CSS rules have equal specificity and equal importance, which one wins?",
+          choices: ["Neither applies", "The browser picks randomly", "The one defined last", "The one written first"],
+          correctIndex: 2,
+          explanation: "The one defined last",
+        },
+        {
+          id: 56,
+          prompt: "What does the :hover pseudo-class select?",
+          choices: ["The first child of a parent element", "A link that has already been visited", "Only elements inside a <header>", "An element with the mouse currently hovering over it"],
+          correctIndex: 3,
+          explanation: "An element with the mouse currently hovering over it",
+        },
+        {
+          id: 57,
+          prompt: "According to the accessibility guideline in this chapter, what should you do with :hover and :focus?",
+          choices: ["Only use :hover, since :focus is deprecated", "Never use :focus at all", "Style them completely differently so users can tell them apart", "Apply the same formatting to both, so keyboard users get the same experience as mouse users"],
+          correctIndex: 3,
+          explanation: "Apply the same formatting to both, so keyboard users get the same experience as mouse users",
+        },
+        {
+          id: 58,
+          prompt: "Listed from the outside in, what are the four layers of the CSS box model?",
+          choices: ["Border, content, padding, margin", "Padding, border, margin, content", "Content, margin, padding, border", "Margin, border, padding, content"],
+          correctIndex: 3,
+          explanation: "Margin, border, padding, content",
+        },
+        {
+          id: 59,
+          prompt: "What happens when a bottom margin on one element meets a top margin on the element right after it?",
+          choices: ["The smaller margin always wins", "Neither margin is applied", "Both margins are added together", "The margins collapse – only the larger of the two is applied"],
+          correctIndex: 3,
+          explanation: "The margins collapse – only the larger of the two is applied",
+        },
+        {
+          id: 60,
+          prompt: "What does width: auto; do for a block element’s content area?",
+          choices: ["Removes the element from the page layout", "Sets the width to exactly 0", "Forces the width to always be 100%", "Bases the width on the containing block – this is the default behavior"],
+          correctIndex: 3,
+          explanation: "Bases the width on the containing block – this is the default behavior",
+        },
+        {
+          id: 61,
+          prompt: "What does the shorthand margin: 1em; do?",
+          choices: ["Sets all four sides to 1em", "Removes all margin", "Sets the left and right margins only", "Sets only the top margin"],
+          correctIndex: 0,
+          explanation: "Sets all four sides to 1em",
+        },
+        {
+          id: 62,
+          prompt: "In the shorthand margin: .5em 1em 2em 1em;, in what order are the four values applied?",
+          choices: ["All four sides equally, using only the first value", "Left, top, right, bottom", "Bottom, left, top, right", "Top, right, bottom, left (clockwise)"],
+          correctIndex: 3,
+          explanation: "Top, right, bottom, left (clockwise)",
+        },
+        {
+          id: 63,
+          prompt: "What does the border-radius property do?",
+          choices: ["Rounds the corners of an element’s border", "Changes the border’s color", "Adds a shadow to an element’s border", "Removes the border entirely"],
+          correctIndex: 0,
+          explanation: "Rounds the corners of an element’s border",
+        },
+        {
+          id: 64,
+          prompt: "What does the box-shadow property’s horizontal and vertical offset values control?",
+          choices: ["The corner radius", "The background image’s position", "The border’s thickness", "The direction and distance the shadow is cast (right/down for positive, left/up for negative)"],
+          correctIndex: 3,
+          explanation: "The direction and distance the shadow is cast (right/down for positive, left/up for negative)",
+        },
+        {
+          id: 65,
+          prompt: "By default (without box-sizing set), what happens to an element’s declared width when you add padding and a border?",
+          choices: ["The element is centered automatically", "The padding and border are added on top of the declared width, making the element visually wider", "The width automatically shrinks to compensate", "Nothing – padding and border never affect width"],
+          correctIndex: 1,
+          explanation: "The padding and border are added on top of the declared width, making the element visually wider",
+        },
+        {
+          id: 66,
+          prompt: "What does box-sizing: border-box; change?",
+          choices: ["It forces every element to be a perfect square", "It removes the box model entirely", "It includes the padding and border within the declared width and height, instead of adding them on top", "It disables margins"],
+          correctIndex: 2,
+          explanation: "It includes the padding and border within the declared width and height, instead of adding them on top",
+        },
+        {
+          id: 67,
+          prompt: "What is a common use of the universal selector (*) combined with margin: 0; padding: 0; box-sizing: border-box;?",
+          choices: ["To hide every element on the page", "To disable all CSS on the page", "As a “reset” to remove default browser spacing and standardize box sizing", "To apply a background color to the whole page"],
+          correctIndex: 2,
+          explanation: "As a “reset” to remove default browser spacing and standardize box sizing",
+        },
+        {
+          id: 68,
+          prompt: "What does background-repeat: no-repeat; do?",
+          choices: ["Repeats the background image both horizontally and vertically", "Repeats the image only vertically", "Prevents the background image from tiling/repeating at all", "Removes the background image entirely"],
+          correctIndex: 2,
+          explanation: "Prevents the background image from tiling/repeating at all",
+        },
+        {
+          id: 69,
+          prompt: "What does background-attachment: fixed; do?",
+          choices: ["Removes the background image", "Makes the background image scroll along with the page content", "Repeats the background image infinitely", "Keeps the background image in place even as the page scrolls"],
+          correctIndex: 3,
+          explanation: "Keeps the background image in place even as the page scrolls",
+        },
+        {
+          id: 70,
+          prompt: "What does a linear-gradient() background image do?",
+          choices: ["Rounds the element’s corners", "Displays a single static image file", "Creates a smooth transition between two or more colors", "Adds a border around the element"],
+          correctIndex: 2,
+          explanation: "Creates a smooth transition between two or more colors",
+        },
+        {
+          id: 71,
+          prompt: "According to the deck’s accessibility guideline for backgrounds, what should you avoid?",
+          choices: ["Using linear gradients", "Using any background color at all", "A background color or image that makes the text over it difficult to read", "Setting a fixed background attachment"],
+          correctIndex: 2,
+          explanation: "A background color or image that makes the text over it difficult to read",
+        },
+        {
+          id: 72,
+          prompt: "How do you horizontally center a block-level element with a set width?",
+          choices: ["Set the left and right margins to auto", "Set padding: center;", "Set text-align: center; on the element itself", "Use box-sizing: border-box; alone"],
+          correctIndex: 0,
+          explanation: "Set the left and right margins to auto",
+        },
+        {
+          id: 73,
+          prompt: "What CSS property turns an element into a flex container?",
+          choices: ["flex-basis: true;", "display: flex;", "position: flex;", "layout: flexbox;"],
+          correctIndex: 1,
+          explanation: "display: flex;",
+        },
+        {
+          id: 74,
+          prompt: "What are the direct children of a flex container called?",
+          choices: ["Flex parents", "Flex items", "Flex axes", "Flex wrappers"],
+          correctIndex: 1,
+          explanation: "Flex items",
+        },
+        {
+          id: 75,
+          prompt: "What is the default value of flex-direction?",
+          choices: ["column", "row", "row-reverse", "wrap"],
+          correctIndex: 1,
+          explanation: "row",
+        },
+        {
+          id: 76,
+          prompt: "When flex-direction is row, which axis is horizontal?",
+          choices: ["The cross axis", "The main axis", "Neither axis is horizontal", "Both axes are horizontal simultaneously"],
+          correctIndex: 1,
+          explanation: "The main axis",
+        },
+        {
+          id: 77,
+          prompt: "When flex-direction is column, which axis becomes vertical?",
+          choices: ["The cross axis", "The main axis", "Neither", "Both"],
+          correctIndex: 1,
+          explanation: "The main axis",
+        },
+        {
+          id: 78,
+          prompt: "What does the flex-basis property control on a flex item?",
+          choices: ["The item’s border color", "The item’s initial size along the main axis before growing or shrinking", "The item’s stacking order", "Whether the item wraps to a new line"],
+          correctIndex: 1,
+          explanation: "The item’s initial size along the main axis before growing or shrinking",
+        },
+        {
+          id: 79,
+          prompt: "What does justify-content control?",
+          choices: ["How a single item aligns on the cross axis", "How flex items are placed and spaced along the main axis", "The border radius of flex items", "The font size of flex items"],
+          correctIndex: 1,
+          explanation: "How flex items are placed and spaced along the main axis",
+        },
+        {
+          id: 80,
+          prompt: "What does align-items control?",
+          choices: ["Spacing between multiple rows/columns", "How flex items align as a group along the cross axis", "The order items appear in", "The main axis direction"],
+          correctIndex: 1,
+          explanation: "How flex items align as a group along the cross axis",
+        },
+        {
+          id: 81,
+          prompt: "What is the difference between align-items and align-content?",
+          choices: ["They are exactly the same property", "align-items aligns items within the container; align-content controls spacing between multiple lines/rows, and has no effect with only one line", "align-content only works on the main axis", "align-items only works when flex-wrap is set to nowrap"],
+          correctIndex: 1,
+          explanation: "align-items aligns items within the container; align-content controls spacing between multiple lines/rows, and has no effect with only one line",
+        },
+        {
+          id: 82,
+          prompt: "What does the order property let you do?",
+          choices: ["Change an item’s size", "Change the visual order flex items appear in, independent of their order in the HTML", "Change the flex container’s direction", "Remove an item from the layout"],
+          correctIndex: 1,
+          explanation: "Change the visual order flex items appear in, independent of their order in the HTML",
+        },
+        {
+          id: 83,
+          prompt: "What do flex-grow and flex-shrink control?",
+          choices: ["The color and border of flex items", "Whether and how much an item grows into extra space or shrinks when space is tight", "The stacking order of items", "The alignment of text inside an item"],
+          correctIndex: 1,
+          explanation: "Whether and how much an item grows into extra space or shrinks when space is tight",
+        },
+        {
+          id: 84,
+          prompt: "If three flex items have flex-grow values of 1, 2, and 4, how is extra space distributed?",
+          choices: ["Equally among all three items", "Proportionally – 1/7, 2/7, and 4/7 of the extra space, based on the total of 7", "Only the item with the highest value gets any extra space", "Extra space is not distributed unless flex-shrink is also set"],
+          correctIndex: 1,
+          explanation: "Proportionally – 1/7, 2/7, and 4/7 of the extra space, based on the total of 7",
+        },
+        {
+          id: 85,
+          prompt: "What three properties does the flex shorthand property set at once?",
+          choices: ["flex-direction, flex-wrap, and flex-flow", "flex-grow, flex-shrink, and flex-basis", "justify-content, align-items, and align-self", "margin, padding, and border"],
+          correctIndex: 1,
+          explanation: "flex-grow, flex-shrink, and flex-basis",
+        },
+        {
+          id: 86,
+          prompt: "What does align-self let you do?",
+          choices: ["Change the alignment of every item in the container at once", "Override the container’s cross-axis alignment for one specific item", "Change an item’s flex-direction independently", "Set the item’s flex-basis"],
+          correctIndex: 1,
+          explanation: "Override the container’s cross-axis alignment for one specific item",
+        },
+        {
+          id: 87,
+          prompt: "According to the accessibility guideline repeated for navigation links, what should you do with :hover and :focus styles?",
+          choices: ["Style them differently so users can distinguish mouse vs. keyboard use", "Apply the same formatting to both, so keyboard and mouse users get a consistent experience", "Only style :hover, since :focus doesn’t apply to links", "Avoid using either pseudo-class in navigation menus"],
+          correctIndex: 1,
+          explanation: "Apply the same formatting to both, so keyboard and mouse users get a consistent experience",
+        },
+        {
+          id: 88,
+          prompt: "What is the difference between display: none; and visibility: hidden;?",
+          choices: ["They behave identically", "visibility: hidden deletes the element from the DOM", "display: none only works on images", "display: none removes the element from the page’s flow entirely; visibility: hidden hides it but still holds its place"],
+          correctIndex: 3,
+          explanation: "display: none removes the element from the page’s flow entirely; visibility: hidden hides it but still holds its place",
+        },
+        {
+          id: 89,
+          prompt: "What is the default value of the position property?",
+          choices: ["relative", "absolute", "static", "fixed"],
+          correctIndex: 2,
+          explanation: "static",
+        },
+        {
+          id: 90,
+          prompt: "With position: relative, what is the element positioned relative to?",
+          choices: ["The nearest positioned ancestor", "Its own normal position in the flow", "The document’s root element", "The browser window"],
+          correctIndex: 1,
+          explanation: "Its own normal position in the flow",
+        },
+        {
+          id: 91,
+          prompt: "With position: absolute, what is the element positioned relative to?",
+          choices: ["The closest containing block that is also positioned (not static)", "Its own original position", "Always the browser window, regardless of ancestors", "Nothing – it disappears from the page"],
+          correctIndex: 0,
+          explanation: "The closest containing block that is also positioned (not static)",
+        },
+        {
+          id: 92,
+          prompt: "With position: fixed, what is the element positioned relative to?",
+          choices: ["Its parent element only", "The nearest sibling element", "Nothing; fixed elements cannot be positioned", "The browser window – it stays in place even when the page is scrolled"],
+          correctIndex: 3,
+          explanation: "The browser window – it stays in place even when the page is scrolled",
+        },
+        {
+          id: 93,
+          prompt: "What must a fixed-position element have, or it won’t appear on the page at all?",
+          choices: ["A z-index value", "A top or bottom position value set", "A flex-basis value", "A background color"],
+          correctIndex: 1,
+          explanation: "A top or bottom position value set",
+        },
+        {
+          id: 94,
+          prompt: "What do the top, right, bottom, and left properties control once a position type is set?",
+          choices: ["Whether the element is visible", "The element’s font size", "The offset used to place the element", "The element’s color"],
+          correctIndex: 2,
+          explanation: "The offset used to place the element",
+        },
+        {
+          id: 95,
+          prompt: "What does setting top to a negative value do?",
+          choices: ["Has no effect unless position is fixed", "Removes the element entirely", "Shifts the content up", "Shifts the content down"],
+          correctIndex: 2,
+          explanation: "Shifts the content up",
+        },
+        {
+          id: 96,
+          prompt: "What does the z-index property control?",
+          choices: ["The element’s horizontal position", "The stacking order of overlapping positioned elements – higher values display on top of lower ones", "Whether the element wraps to a new line", "The element’s font weight"],
+          correctIndex: 1,
+          explanation: "The stacking order of overlapping positioned elements – higher values display on top of lower ones",
+        },
+        {
+          id: 97,
+          prompt: "For z-index to have any effect on an element, what must be true about that element?",
+          choices: ["It must be inside a <nav> element", "It must have display: flex set", "It must have a position value other than static", "It must have a fixed width"],
+          correctIndex: 2,
+          explanation: "It must have a position value other than static",
+        },
+        {
+          id: 98,
+          prompt: "In the 2-tier navigation menu example, what CSS makes the nested <ul> appear only on hover?",
+          choices: ["nav ul li:hover > ul { display: block; }", "nav ul ul { display: flex; }", "nav a:link { display: block; }", "nav ul { display: block; }"],
+          correctIndex: 0,
+          explanation: "nav ul li:hover > ul { display: block; }",
+        },
+        {
+          id: 99,
+          prompt: "Why does the deck recommend :focus-within instead of relying only on :hover for the nested menu?",
+          choices: [":focus-within is required for flexbox to work", "There is no real reason; they are interchangeable", "It lets keyboard users tab into the second-tier menu, which plain :hover alone doesn’t support", ":focus-within works in more browsers than :hover"],
+          correctIndex: 2,
+          explanation: "It lets keyboard users tab into the second-tier menu, which plain :hover alone doesn’t support",
+        },
+        {
+          id: 100,
+          prompt: "Can an absolutely positioned element overlap other elements on the page?",
+          choices: ["Yes – absolute positioning removes it from the normal flow, so it can overlap", "Only if z-index is set to 0", "No – absolute positioning always avoids overlapping content", "Only inside a flex container"],
+          correctIndex: 0,
+          explanation: "Yes – absolute positioning removes it from the normal flow, so it can overlap",
+        },
+        {
+          id: 101,
+          prompt: "What are the three types of HTML lists described in this chapter?",
+          choices: ["Unordered, ordered, and description lists", "Bulleted, numbered, and linked", "Nested, flat, and inline lists", "Navigation, definition, and menu lists"],
+          correctIndex: 0,
+          explanation: "Unordered, ordered, and description lists",
+        },
+        {
+          id: 102,
+          prompt: "In a description list, what do the <dt> and <dd> elements represent?",
+          choices: ["<dt> is the list container, <dd> is a list item", "<dt> is a data table, <dd> is a data description", "<dt> is the term, <dd> is the term’s description", "They are interchangeable and mean the same thing"],
+          correctIndex: 2,
+          explanation: "<dt> is the term, <dd> is the term’s description",
+        },
+        {
+          id: 103,
+          prompt: "What attribute lets you start an ordered list at a number other than 1, as in <ol start=\"4\">?",
+          choices: ["index=\"4\"", "start=\"4\"", "begin=\"4\"", "first=\"4\""],
+          correctIndex: 1,
+          explanation: "start=\"4\"",
+        },
+        {
+          id: 104,
+          prompt: "Which CSS property controls the bullet style (disc, circle, square, none) of an unordered list?",
+          choices: ["list-marker", "list-style-image", "bullet-style", "list-style-type"],
+          correctIndex: 3,
+          explanation: "list-style-type",
+        },
+        {
+          id: 105,
+          prompt: "Which list-style-type value would display list items as lowercase letters (a, b, c…)?",
+          choices: ["lower-roman", "decimal-leading-zero", "lower-alpha", "upper-alpha"],
+          correctIndex: 2,
+          explanation: "lower-alpha",
+        },
+        {
+          id: 106,
+          prompt: "What do the a:link and a:visited pseudo-classes select?",
+          choices: ["Unvisited links and links the user has already visited", "Links inside a <nav> element only", "Only links that open in a new tab", "Links currently being hovered over"],
+          correctIndex: 0,
+          explanation: "Unvisited links and links the user has already visited",
+        },
+        {
+          id: 107,
+          prompt: "What does target=\"_blank\" do when added to an <a> element?",
+          choices: ["Disables the link", "Turns the link into an email link", "Makes the link jump to a placeholder on the same page", "Opens the linked page in a new browser window or tab"],
+          correctIndex: 3,
+          explanation: "Opens the linked page in a new browser window or tab",
+        },
+        {
+          id: 108,
+          prompt: "How do you create a link that jumps to a placeholder within the same page?",
+          choices: ["By giving the target element an id, then linking to href=\"#idvalue\"", "By using the <placeholder> element", "Placeholders cannot be linked to directly", "By setting target=\"#placeholder\""],
+          correctIndex: 0,
+          explanation: "By giving the target element an id, then linking to href=\"#idvalue\"",
+        },
+        {
+          id: 109,
+          prompt: "What prefix creates a link that starts a pre-addressed email message?",
+          choices: ["mailto:", "email:", "send:", "tel:"],
+          correctIndex: 0,
+          explanation: "mailto:",
+        },
+        {
+          id: 110,
+          prompt: "What prefix creates a link that calls a phone number?",
+          choices: ["mailto:", "phone:", "tel:", "call:"],
+          correctIndex: 2,
+          explanation: "tel:",
+        },
+        {
+          id: 111,
+          prompt: "In the multi-page navigation example, why does the link to the stylesheet change from href=\"styles/main.css\" on the main index page to href=\"../styles/main.css\" on a page inside the speakers folder?",
+          choices: ["Because CSS files must always use absolute paths", "Because the speakers folder page is one level deeper, so ../ is needed to move up out of that folder before reaching styles/main.css", "There is no real reason; both paths work identically", "Because relative paths only work for images, not stylesheets"],
+          correctIndex: 1,
+          explanation: "Because the speakers folder page is one level deeper, so ../ is needed to move up out of that folder before reaching styles/main.css",
+        },
+        {
+          id: 112,
+          prompt: "What does the nested <ul> inside the “Speakers” <li> create in the navigation example?",
+          choices: ["An ordered list of speakers by rank", "A second-tier (nested) submenu of links under the Speakers menu item", "A completely separate, unrelated navigation bar", "A description list of speaker bios"],
+          correctIndex: 1,
+          explanation: "A second-tier (nested) submenu of links under the Speakers menu item",
+        },
+        {
+          id: 113,
+          prompt: "What is a key benefit of SVG images over raster formats like JPEG or GIF?",
+          choices: ["SVG is the only format supported by all browsers", "SVG images cannot be styled with CSS", "SVG images are always smaller than any other format", "SVG images are scalable and load faster, making them well suited to Responsive Web Design"],
+          correctIndex: 3,
+          explanation: "SVG images are scalable and load faster, making them well suited to Responsive Web Design",
+        },
+        {
+          id: 114,
+          prompt: "According to the deck, what is a drawback of SVG images?",
+          choices: ["They are not recognized by search engines", "They cannot be resized", "They are hard to create without graphic design skills and aren’t suitable for complex images like photographs", "They only work in Chrome"],
+          correctIndex: 2,
+          explanation: "They are hard to create without graphic design skills and aren’t suitable for complex images like photographs",
+        },
+        {
+          id: 115,
+          prompt: "According to the accessibility guideline, what should the alt attribute contain for a purely decorative image?",
+          choices: ["A detailed description of the image", "The word “decorative”", "An empty string", "The image’s file name"],
+          correctIndex: 2,
+          explanation: "An empty string",
+        },
+        {
+          id: 116,
+          prompt: "What does the CSS float: left; do to an image?",
+          choices: ["Centers the image on the page", "Rotates the image 90 degrees", "Moves the image to the left and allows surrounding text/content to wrap around it", "Removes the image from the page"],
+          correctIndex: 2,
+          explanation: "Moves the image to the left and allows surrounding text/content to wrap around it",
+        },
+        {
+          id: 117,
+          prompt: "What does clear: left; on an element following a floated image accomplish?",
+          choices: ["It removes the float from the image", "It centers the element horizontally", "It deletes the floated image", "It stops that element from wrapping alongside the floated image, pushing it below instead"],
+          correctIndex: 3,
+          explanation: "It stops that element from wrapping alongside the floated image, pushing it below instead",
+        },
+        {
+          id: 118,
+          prompt: "What does the vertical-align property control?",
+          choices: ["The horizontal position of an inline element", "Whether an image is floated", "The image’s file format", "The vertical alignment of inline or inline-block elements, such as images relative to surrounding text"],
+          correctIndex: 3,
+          explanation: "The vertical alignment of inline or inline-block elements, such as images relative to surrounding text",
+        },
+        {
+          id: 119,
+          prompt: "How do you turn an image into a clickable hyperlink in HTML?",
+          choices: ["Images cannot be made into links", "Set href directly on the <img> tag", "Wrap the <img> element inside an <a> element", "Add an onclick attribute directly to the <img> tag"],
+          correctIndex: 2,
+          explanation: "Wrap the <img> element inside an <a> element",
+        },
+        {
+          id: 120,
+          prompt: "Why might you set background-color on the body element when also setting a background-image on the html element?",
+          choices: ["There is no practical reason; it’s purely decorative", "So the body doesn’t inherit the background image when its width is less than the full viewport width", "To disable the background image entirely", "Because background-image only works on the body element"],
+          correctIndex: 1,
+          explanation: "So the body doesn’t inherit the background image when its width is less than the full viewport width",
+        },
+        {
+          id: 121,
+          prompt: "What is the purpose of the HTML <figure> element?",
+          choices: ["It’s a container for self-contained content like illustrations, diagrams, photos, or code listings", "It replaces the <img> element entirely", "It automatically adds a border to any image", "It can only be used for photographs"],
+          correctIndex: 0,
+          explanation: "It’s a container for self-contained content like illustrations, diagrams, photos, or code listings",
+        },
+        {
+          id: 122,
+          prompt: "What does the <figcaption> element provide?",
+          choices: ["A hidden element used only by screen readers", "An alternate image source if the main one fails to load", "A caption describing the content of its associated <figure>", "A way to link the figure to another page"],
+          correctIndex: 2,
+          explanation: "A caption describing the content of its associated <figure>",
+        },
+        {
+          id: 123,
+          prompt: "What is required for a Creative Commons licensed image, according to the deck?",
+          choices: ["Attribution is typically required", "You must pay a licensing fee", "Nothing; the images are entirely free to use with no conditions", "The image must be converted to SVG"],
+          correctIndex: 0,
+          explanation: "Attribution is typically required",
+        },
+        {
+          id: 124,
+          prompt: "What does the deck say about “hot-linking” to images on another site?",
+          choices: ["It’s the recommended way to use free stock images", "It’s required for Creative Commons compliance", "It should be avoided unless you have an agreement with the other site", "It only applies to favicon images"],
+          correctIndex: 2,
+          explanation: "It should be avoided unless you have an agreement with the other site",
+        },
+        {
+          id: 125,
+          prompt: "What is a favicon?",
+          choices: ["A small (typically 16px square) icon that displays in the browser tab and bookmarks for a page", "A large banner image displayed at the top of a page", "A CSS property for background images", "An image format used exclusively for logos"],
+          correctIndex: 0,
+          explanation: "A small (typically 16px square) icon that displays in the browser tab and bookmarks for a page",
+        },
+        {
+          id: 126,
+          prompt: "How do you link a favicon into an HTML page’s head section?",
+          choices: ["<meta name=\"favicon\" content=\"images/favicon.ico\">", "<favicon src=\"images/favicon.ico\">", "<link rel=\"icon\" href=\"images/favicon.ico\">", "<img src=\"favicon.ico\" class=\"favicon\">"],
+          correctIndex: 2,
+          explanation: "<link rel=\"icon\" href=\"images/favicon.ico\">",
+        },
+        {
+          id: 127,
+          prompt: "When a page links both main.css and a page-specific stylesheet like products.css, in what order are the styles applied?",
+          choices: ["main.css styles are applied first, then products.css styles are applied, potentially overriding main.css", "Only the last linked stylesheet has any effect; the others are ignored", "Both are applied simultaneously with equal, unresolved precedence", "products.css is always applied first, regardless of link order"],
+          correctIndex: 0,
+          explanation: "main.css styles are applied first, then products.css styles are applied, potentially overriding main.css",
+        },
+        {
+          id: 128,
+          prompt: "The term “website conventions” refers to",
+          choices: ["the common layout of websites with header, footer, and three columns", "the use of HTML for content and CSS for formatting and page layout", "the presentation and operational features that most websites share", "usability and accessibility"],
+          correctIndex: 2,
+          explanation: "the presentation and operational features that most websites share",
+        },
+        {
+          id: 129,
+          prompt: "Which of the following is NOT a guideline for usability? (web design)",
+          choices: ["Present the critical information above the fold", "Adhere to the current conventions for using websites", "All navigation bars should provide a link to the Home page", "Group related items into separate components"],
+          correctIndex: 2,
+          explanation: "Not every nav bar needs a Home link (e.g. the home page itself); the other options are usability guidelines.",
+        },
+        {
+          id: 130,
+          prompt: "Which of the following is NOT a website convention?",
+          choices: ["If you click on a cart symbol, you go to your shopping cart.", "The maximum number of characters in a text line should be around 65.", "The header consists of logo, utilities, and navigation bar.", "Underlined text is always a link."],
+          correctIndex: 1,
+          explanation: "The ~65 character line length is a typography guideline, not a website convention.",
+        },
+        {
+          id: 131,
+          prompt: "Which of the following is NOT a way to show the users where they are in the website?",
+          choices: ["Highlight the active link in the navigation bar", "Include a page heading that is the same as the link that led to the page", "Highlight the active page link in the sidebar", "Include a text block in the heading that describes the contents of the page"],
+          correctIndex: 3,
+          explanation: "Include a text block in the heading that describes the contents of the page",
+        },
+        {
+          id: 132,
+          prompt: "To make the best use of space on each web page, you should do all but one of the following. Which one is it?",
+          choices: ["Use striking images to generate attention", "Put the critical content above the fold", "Put the most important content in the primary locations", "Keep the header relatively small"],
+          correctIndex: 0,
+          explanation: "Use striking images to generate attention",
+        },
+        {
+          id: 133,
+          prompt: "Unlike traditional sequential writing, “chunking” is better for web writing because",
+          choices: ["it lets the users select the content they’re interested in", "it can easily be implemented with CSS", "it makes it easier to do the writing", "it provides more structure to the writing"],
+          correctIndex: 0,
+          explanation: "it lets the users select the content they’re interested in",
+        },
+        {
+          id: 134,
+          prompt: "The 60-30-10 color rule suggests that 60% of the color on a page should be",
+          choices: ["page content", "an accent color", "a secondary color", "the dominant color"],
+          correctIndex: 3,
+          explanation: "the dominant color",
+        },
+        {
+          id: 135,
+          prompt: "Which of the following is NOT a good design tip?",
+          choices: ["Use consistent branding", "Simplify navigation.", "Give important components primary locations.", "Make the header large."],
+          correctIndex: 3,
+          explanation: "Make the header large.",
+        },
+        {
+          id: 136,
+          prompt: "Which of the following is NOT a principle for graphics design?",
+          choices: ["Use contrast to highlight important page components", "Related items should line up with each other", "Related items should be close together", "Design elements shouldn’t be continued from page to page"],
+          correctIndex: 3,
+          explanation: "Design elements shouldn’t be continued from page to page",
+        },
+        {
+          id: 137,
+          prompt: "Which of the following is NOT a guideline for web typography?",
+          choices: ["Don’t justify the text", "Limit the length of text lines to 65 characters", "Use serif fonts", "Keep text paragraphs close to the related headings"],
+          correctIndex: 2,
+          explanation: "Use serif fonts",
+        },
+        {
+          id: 138,
+          prompt: "Which of the following is a guideline for web writing?",
+          choices: ["Writing should be the same as if on paper.", "Use more bulleted and numbered lists", "Use abbreviations for links", "Justify text"],
+          correctIndex: 1,
+          explanation: "Use more bulleted and numbered lists",
+        },
+        {
+          id: 139,
+          prompt: "If you’re designing a website for a small, relatively unknown company, the primary guideline for home page design is",
+          choices: ["use a header that has a convincing tag line", "make sure the home page looks different than the other pages", "use the home page to sell the website and thus the company", "don’t include an active link to the home page"],
+          correctIndex: 2,
+          explanation: "use the home page to sell the website and thus the company",
+        },
+        {
+          id: 140,
+          prompt: "Which of the following is NOT a guideline for developing a home page?",
+          choices: ["Only use familiar icons for navigation", "Design the home page so it is similar to the other pages of the site", "Code a title element that has less than 65 characters", "Don’t include an active link to the home page"],
+          correctIndex: 1,
+          explanation: "Design the home page so it is similar to the other pages of the site",
+        },
+        {
+          id: 141,
+          prompt: "Which of the following is NOT a guideline for web writing?",
+          choices: ["Use short text for all links", "Use more bulleted and numbered lists", "Use tables for tabular information", "Use fewer words"],
+          correctIndex: 0,
+          explanation: "Use short text for all links",
+        },
+      ];
+
+      const topics = [
+        {
+          id: 'html',
+          title: 'HTML Fundamentals',
+          summary: 'Structure, block vs inline, semantics, entities, attributes',
+          items: [
+            {
+              label: 'Page structure',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;!DOCTYPE html&gt;</code> → <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;html&gt;</code> → <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;head&gt;</code> (meta, title, links — not shown in the window) + <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;body&gt;</code> (visible content).',
+            },
+            {
+              label: 'Block vs inline',
+              body: '<strong>Block</strong> (new line, full width): <code class="font-mono text-xs bg-mist-100 px-1 rounded">h1–h6</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">p</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">pre</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">blockquote</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">address</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">div</code>. <strong>Inline</strong> (flow with text): <code class="font-mono text-xs bg-mist-100 px-1 rounded">a</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">img</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">cite</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">code</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">em</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">strong</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">span</code>.',
+            },
+            {
+              label: 'Semantic HTML5',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">header</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">main</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">section</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">article</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">nav</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">aside</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">footer</code> — prefer these over anonymous <code class="font-mono text-xs bg-mist-100 px-1 rounded">div</code>s when meaning fits.',
+            },
+            {
+              label: 'Lists',
+              body: 'Bulleted <code class="font-mono text-xs bg-mist-100 px-1 rounded">ul</code> / numbered <code class="font-mono text-xs bg-mist-100 px-1 rounded">ol</code> with <code class="font-mono text-xs bg-mist-100 px-1 rounded">li</code>. Definition lists: <code class="font-mono text-xs bg-mist-100 px-1 rounded">dl</code> → <code class="font-mono text-xs bg-mist-100 px-1 rounded">dt</code> (term) + <code class="font-mono text-xs bg-mist-100 px-1 rounded">dd</code> (description).',
+            },
+            {
+              label: 'Character entities',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">&amp;amp;</code> → &amp; · <code class="font-mono text-xs bg-mist-100 px-1 rounded">&amp;lt;</code> → &lt; · <code class="font-mono text-xs bg-mist-100 px-1 rounded">&amp;gt;</code> → &gt; · <code class="font-mono text-xs bg-mist-100 px-1 rounded">&amp;nbsp;</code> → non-breaking space · <code class="font-mono text-xs bg-mist-100 px-1 rounded">&amp;copy;</code> → ©',
+            },
+            {
+              label: 'Core attributes',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">id</code> (unique), <code class="font-mono text-xs bg-mist-100 px-1 rounded">class</code> (reusable), <code class="font-mono text-xs bg-mist-100 px-1 rounded">title</code> (advisory), <code class="font-mono text-xs bg-mist-100 px-1 rounded">lang</code> (language). Tip: <code class="font-mono text-xs bg-mist-100 px-1 rounded">href="#"</code> is a common placeholder to avoid 404s while building.',
+            },
+          ],
+        },
+        {
+          id: 'css',
+          title: 'CSS Core Concepts',
+          summary: 'Inserting styles, selectors, pseudo-classes, specificity',
+          items: [
+            {
+              label: 'Three ways to insert CSS',
+              body: '<strong>External</strong>: <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;link rel="stylesheet" href="..."&gt;</code>. <strong>Embedded</strong>: <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;style&gt;</code> in <code class="font-mono text-xs bg-mist-100 px-1 rounded">head</code>. <strong>Inline</strong>: <code class="font-mono text-xs bg-mist-100 px-1 rounded">style="..."</code> on an element.',
+            },
+            {
+              label: 'Selectors',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">element</code> · <code class="font-mono text-xs bg-mist-100 px-1 rounded">.class</code> · <code class="font-mono text-xs bg-mist-100 px-1 rounded">#id</code> · <code class="font-mono text-xs bg-mist-100 px-1 rounded">h1 img</code> descendant · <code class="font-mono text-xs bg-mist-100 px-1 rounded">li &gt; a</code> child · <code class="font-mono text-xs bg-mist-100 px-1 rounded">h2 + p</code> adjacent sibling · <code class="font-mono text-xs bg-mist-100 px-1 rounded">h2 ~ p</code> general sibling. Group: <code class="font-mono text-xs bg-mist-100 px-1 rounded">tag1, tag2 { }</code>.',
+            },
+            {
+              label: 'Pseudo-classes',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">:hover</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:visited</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:focus</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:first-child</code>. When you set <code class="font-mono text-xs bg-mist-100 px-1 rounded">a:hover</code>, set <code class="font-mono text-xs bg-mist-100 px-1 rounded">a:focus</code> too for keyboard accessibility.',
+            },
+            {
+              label: 'Specificity (high → low)',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">!important</code> &gt; <strong>ID</strong> &gt; <strong>class</strong> / attribute / pseudo-class &gt; <strong>element</strong> / pseudo-element. Prefer specificity and order over spraying <code class="font-mono text-xs bg-mist-100 px-1 rounded">!important</code>.',
+            },
+            {
+              label: 'Units & color',
+              body: 'No unit needed for zero (<code class="font-mono text-xs bg-mist-100 px-1 rounded">margin: 0</code>). No space between value and unit (<code class="font-mono text-xs bg-mist-100 px-1 rounded">1em</code>). Prefer named colors when readable; also <code class="font-mono text-xs bg-mist-100 px-1 rounded">color</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">background-color</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">background-image: url(...)</code>.',
+            },
+          ],
+        },
+        {
+          id: 'box',
+          title: 'Box Model & Layout',
+          summary: 'Margins, borders, float/clear, flexbox nav',
+          items: [
+            {
+              label: 'Margin collapsing',
+              body: 'Adjacent vertical margins collapse — the <strong>smaller is ignored</strong>; the larger value is used (they do not add).',
+            },
+            {
+              label: 'Margin shorthand (clock)',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">margin: top right bottom left</code>. One value = all sides. Two = vertical | horizontal. Three = top | left/right | bottom. Center a block: <code class="font-mono text-xs bg-mist-100 px-1 rounded">margin: 0 auto</code> (needs a width).',
+            },
+            {
+              label: 'Borders & float',
+              body: 'Borders use width, style, and color. Floated elements are taken out of normal flow; use <code class="font-mono text-xs bg-mist-100 px-1 rounded">clear: both</code> (or left/right) so following content drops below floats.',
+            },
+            {
+              label: 'Flexbox navigation',
+              body: 'Nav is usually a list of links. <strong>Vertical</strong>: column flex / stacked items. <strong>Horizontal</strong>: <code class="font-mono text-xs bg-mist-100 px-1 rounded">display: flex</code> on the list, row direction. <strong>2-tier</strong>: nested lists with hover/focus to reveal submenus.',
+            },
+          ],
+        },
+        {
+          id: 'paths',
+          title: 'Paths & Links',
+          summary: 'Absolute, root-relative, document-relative; images',
+          items: [
+            {
+              label: 'URL / path types',
+              body: '<strong>Absolute</strong>: full URL (<code class="font-mono text-xs bg-mist-100 px-1 rounded">https://…</code>). <strong>Root-relative</strong>: starts with <code class="font-mono text-xs bg-mist-100 px-1 rounded">/</code> (from site root). <strong>Document-relative</strong>: relative to the current file (<code class="font-mono text-xs bg-mist-100 px-1 rounded">images/x.png</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">../</code> up one folder).',
+            },
+            {
+              label: 'Images',
+              body: '<code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;img src="…" alt="…"&gt;</code> — always provide meaningful <code class="font-mono text-xs bg-mist-100 px-1 rounded">alt</code>. Also: favicons and CSS <code class="font-mono text-xs bg-mist-100 px-1 rounded">background-image</code>.',
+            },
+            {
+              label: 'Links',
+              body: 'The <code class="font-mono text-xs bg-mist-100 px-1 rounded">href</code> on <code class="font-mono text-xs bg-mist-100 px-1 rounded">&lt;a&gt;</code> decides the destination. Style link states with pseudo-classes (<code class="font-mono text-xs bg-mist-100 px-1 rounded">:link</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:visited</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:hover</code>, <code class="font-mono text-xs bg-mist-100 px-1 rounded">:focus</code>).',
+            },
+          ],
+        },
+      ];
+
+      return {
+        QUIZ_SIZE,
+        tabs: [
+          { id: 'cheatsheet', label: 'Cheat Sheet' },
+          { id: 'quiz', label: 'Quiz' },
+          { id: 'playground', label: 'Playground' },
+        ],
+        activeSection: 'cheatsheet',
+        openTopic: 'html',
+        topics,
+        questionPool,
+
+        activeQuestions: [],
+        currentIndex: 0,
+        score: 0,
+        answered: {},
+        feedbackKey: 0, // bumps on each answer so the banner re-animates
+
+        htmlCode: `<nav class="nav">
+  <ul>
+    <li><a href="#">Home</a></li>
+    <li><a href="#">Labs</a></li>
+    <li><a href="#">Notes</a></li>
+  </ul>
+</nav>
+<main class="box">
+  <p>Practice flexbox &amp; the box model here.</p>
+</main>`,
+        cssCode: `body {
+  font-family: system-ui, sans-serif;
+  margin: 1rem;
+  color: #111827;
+}
+.nav ul {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+.nav a {
+  color: #0f766e;
+  text-decoration: none;
+}
+.nav a:hover,
+.nav a:focus {
+  text-decoration: underline;
+}
+.box {
+  margin: 0 auto;
+  max-width: 20rem;
+  padding: 1rem;
+  border: 2px solid #0f766e;
+}`,
+        previewDoc: '',
+
+        get currentQuestion() {
+          return this.activeQuestions[this.currentIndex] || null;
+        },
+        get answeredCount() {
+          return Object.keys(this.answered).length;
+        },
+        get progressPercent() {
+          return Math.round((this.answeredCount / this.QUIZ_SIZE) * 100);
+        },
+        // Getters touch `answered` so Alpine re-renders as soon as we replace it
+        get hasAnsweredCurrent() {
+          const q = this.currentQuestion;
+          return !!(q && this.answered[String(q.id)] !== undefined);
+        },
+        get isCurrentCorrect() {
+          const q = this.currentQuestion;
+          if (!q || this.answered[String(q.id)] === undefined) return false;
+          return this.answered[String(q.id)] === q.correctIndex;
+        },
+        get pickedIndex() {
+          const q = this.currentQuestion;
+          if (!q) return null;
+          const v = this.answered[String(q.id)];
+          return v === undefined ? null : v;
+        },
+
+        init() {
+          this.loadQuiz();
+          this.updatePreview();
+        },
+
+        // Fisher–Yates shuffle, then take first n
+        sampleQuestions(n) {
+          const copy = this.questionPool.slice();
+          for (let i = copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copy[i], copy[j]] = [copy[j], copy[i]];
+          }
+          return copy.slice(0, n);
+        },
+
+        loadQuiz() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) {
+              const data = JSON.parse(raw);
+              // Rebuild the same round from saved IDs
+              if (Array.isArray(data.activeQuestionIds) && data.activeQuestionIds.length === QUIZ_SIZE) {
+                const byId = Object.fromEntries(this.questionPool.map((q) => [q.id, q]));
+                const restored = data.activeQuestionIds.map((id) => byId[id]).filter(Boolean);
+                if (restored.length === QUIZ_SIZE) {
+                  this.activeQuestions = restored;
+                  this.currentIndex = Math.min(data.currentIndex || 0, QUIZ_SIZE - 1);
+                  // Normalize keys to strings for consistent lookups
+                  const normalized = {};
+                  Object.entries(data.answered || {}).forEach(([k, v]) => { normalized[String(k)] = v; });
+                  this.answered = normalized;
+                  this.score = typeof data.score === 'number' ? data.score : this.recomputeScore();
+                  return;
+                }
+              }
+            }
+          } catch (_) { /* ignore corrupt storage */ }
+          this.resetQuiz(false);
+        },
+
+        recomputeScore() {
+          let s = 0;
+          for (const q of this.activeQuestions) {
+            if (this.answered[String(q.id)] === q.correctIndex) s++;
+          }
+          return s;
+        },
+
+        resetQuiz(persist = true) {
+          this.activeQuestions = this.sampleQuestions(QUIZ_SIZE);
+          this.currentIndex = 0;
+          this.score = 0;
+          this.answered = {};
+          this.feedbackKey = 0;
+          if (persist) this.persist();
+        },
+
+        persist() {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              score: this.score,
+              currentIndex: this.currentIndex,
+              activeQuestionIds: this.activeQuestions.map((q) => q.id),
+              answered: this.answered,
+            })
+          );
+        },
+
+        goPrev() {
+          if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.persist();
+          }
+        },
+
+        goNext() {
+          if (this.currentIndex < this.activeQuestions.length - 1) {
+            this.currentIndex++;
+            this.persist();
+          }
+        },
+
+        // Replace `answered` (don't mutate) so Alpine tracks the change immediately
+        selectAnswer(choiceIndex) {
+          const q = this.currentQuestion;
+          if (!q || this.hasAnsweredCurrent) return;
+          const key = String(q.id);
+          this.answered = { ...this.answered, [key]: choiceIndex };
+          if (choiceIndex === q.correctIndex) this.score++;
+          this.feedbackKey++;
+          this.persist();
+        },
+
+        choiceClass(ci) {
+          const q = this.currentQuestion;
+          if (!q || !this.hasAnsweredCurrent) {
+            return 'border-mist-200 bg-white hover:border-teal-600/60';
+          }
+          const picked = this.pickedIndex;
+          if (ci === q.correctIndex) return 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-400';
+          if (ci === picked) return 'border-red-400 bg-red-50 text-red-950 ring-1 ring-red-300';
+          return 'border-mist-200 bg-mist-50 text-ink-700/45 opacity-70';
+        },
+
+        choiceLetterClass(ci) {
+          const q = this.currentQuestion;
+          if (!q || !this.hasAnsweredCurrent) return 'border-mist-200 bg-mist-50 text-ink-700';
+          if (ci === q.correctIndex) return 'border-emerald-500 bg-emerald-500 text-white';
+          if (ci === this.pickedIndex) return 'border-red-400 bg-red-400 text-white';
+          return 'border-mist-200 bg-white text-ink-700/40';
+        },
+
+        updatePreview() {
+          this.previewDoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${this.cssCode}</style></head><body>${this.htmlCode}</body></html>`;
+        },
+      };
+    }
+  </script>
+</body>
+</html>
